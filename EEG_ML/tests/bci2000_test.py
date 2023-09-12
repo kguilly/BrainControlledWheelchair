@@ -10,24 +10,46 @@ to run this file from the command line:
 (env) Documents/GitHub/BCWheelchair_ML $ python -m tests.test_1
 
 
+
 Questions that I have to answer: 
 - How long of durations do I want to sample? 
-- How do I want to separate training and testing? 
 
 
+Conclusions from reading the Documentation on the datset: 
+- Use task 1 and 3 bc tasks 2 and 4 are imagined versions of 1 and 3
+- Tasks 1 and 3 are in files: 
+    Task 1: 
+        R03, R07, R11
+    Task 3:
+        R05, R09, R13
+
+- Need 5 different labels: 
+    - Relaxed
+    - Squeeze both fists
+    - Squeeze both feet
+    - Squeeze left hand
+    - Squeeze right hand
+
+- Need to read .event files in order to know when 
 '''
 import numpy as np
 import os
 import pyedflib
 
 # EEGNet specific imports
-from EEGModels import EEGNet
+# from EEGModels import EEGNet
+import EEGNet
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K
 
 
 kernels, channels, samples = 1, 64, 1
+label_mapping = {
+    1 : "Baseline, eyes open",
+    2: "Baseline, eyes closed",
+    3: "Open and Close "
+}
 
 ################################################################
 ## Load the dataset and order it 
@@ -92,6 +114,8 @@ y_validate = []
 y_test = []
 
 num_labels = 0
+bad_data = []
+good_data = []
 
 for file in edf_files:
     eeg_arrays = []
@@ -138,8 +162,11 @@ for file in edf_files:
         # this file went through the entire try/catch block, so add it to the
         # num_labels (will be used when calling eegnet)
         num_labels+=1
+        good_data.append(label)
     except:
-        print("Something wrong with shape of arrays for file: ", path)    
+        print("Something wrong with shape of arrays for file: ", path)
+        bad_data.append(int(path[-6] + path[-5]))
+
     
 print(X_train.shape)
 print(y_train.shape)
@@ -151,22 +178,8 @@ print(y_train.shape)
 ################################################################
 ## Process, filter, and epoch the data
 
-# for each of the elements of the Y array, if the label is greater than 
-# the num_labels, adjust 
-# TODO: problem with the labels
-# difference = 14 - num_labels
-# for elem in y_train:
-#     if elem > num_labels:
-#         elem-=difference
-
-# for elem in y_validate:
-#     if elem > num_labels:
-#         elem-=difference
-
-# for elem in y_train:
-#     if elem > num_labels:
-#         elem -= difference
-
+# make a table for keys corresponding to labels
+# throw out bad
 
 # convert labels to one-hot encoding
 # y_train = np_utils.to_categorical(y_train-1)
