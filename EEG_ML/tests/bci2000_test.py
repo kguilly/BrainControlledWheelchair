@@ -3,8 +3,11 @@
 This file was developed by Kaleb Guillot for the purposes of the 
 senior design project: The Brain-Controlled Wheelchair
 
-The dataset used: bci2000: 
+The dataset used:  
 https://physionet.org/content/eegmmidb/1.0.0/
+
+from the PhysioToolkit Software:
+https://archive.physionet.org/physiotools/ 
 
 to run this file from the command line: 
 (env) Documents/GitHub/BCWheelchair_ML $ python -m tests.test_1
@@ -37,8 +40,8 @@ import os
 import pyedflib
 
 # EEGNet specific imports
-# from EEGModels import EEGNet
-import EEGNet
+# import EEGNet
+from EEGModels import EEGNet
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K
@@ -46,9 +49,11 @@ from tensorflow.keras import backend as K
 
 kernels, channels, samples = 1, 64, 1
 label_mapping = {
-    1 : "Baseline, eyes open",
-    2: "Baseline, eyes closed",
-    3: "Open and Close "
+    1 : "Rest",
+    2 : "Squeeze Both Fists",
+    3 : "Squeeze Both Feet",
+    4 : "Squeeze Left Hand" ,
+    5 : "Squeeze Right Hand" ,
 }
 
 ################################################################
