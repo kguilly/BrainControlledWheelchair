@@ -50,6 +50,7 @@ descriptions = []
 with open(file, 'rb') as file:
     for line in file:
         print(line)
+    
         # parts = line.strip().split()  # Split each line into parts
         # if len(parts) >= 3:
         #     onset = float(parts[0])  # Parse onset time
@@ -65,3 +66,33 @@ with open(file, 'rb') as file:
 
 # Now you can work with the annotations object
 # print(annotations)
+
+
+########################################################
+print("\n\n###################################\n")
+print("READING THE ENTIRE FILE")
+import pyedflib
+import numpy as np
+
+file = '/home/kaleb/Documents/eeg_dataset/files/S001/S001R14.edf'
+
+edf_data = pyedflib.EdfReader(file)
+
+# print all the attributes
+print(edf_data.file_info)
+print("file duration: ", edf_data.getFileDuration())
+print("num samples: ", edf_data.getNSamples())
+
+annotation = edf_data.readAnnotations()
+
+eeg_data = []
+for channel in range(64):
+    arr = edf_data.readSignal(channel)
+    eeg_data.append(arr)
+
+print(" ")
+eeg_data = np.stack(eeg_data)
+annotation = np.stack(annotation)
+print(eeg_data.shape)
+
+print("annotations: ", annotation)
