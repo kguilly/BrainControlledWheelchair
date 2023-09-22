@@ -8,7 +8,7 @@ from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K
 import read_edf_files
-import innvestigate
+# import innvestigate
 
 kernels, chans = 1, 64
 label_mapping = {
