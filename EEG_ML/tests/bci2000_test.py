@@ -41,7 +41,7 @@ import pyedflib
 
 # EEGNet specific imports
 # import EEGNet
-from EEGModels import EEGNet
+from EEG_ML.tests.fuckingshit import EEGNet
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K

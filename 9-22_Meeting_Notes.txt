@@ -1,0 +1,33 @@
+FIRST TIME USER TRAINING
+    User tries to move an image on the screen
+
+        - 1st session: acquire data
+            - 5 seconds each sub-session
+                - rest, move up, down, left, right
+        - loading screeen
+            - model is training, magic is happening, ADVENTURE TIIIIIIIIMEMEMMEMEME.
+
+        - On the back end: feed the data to the model and train
+            - Which eletrodes contribute the best to a correct classification?
+                - If all, then keep all. If less, then keep less
+
+            - if accuracy of ML is < 70%, Do another round of sessions
+                - Display to the user:
+                    - Optimal electrodes have been selected, do another session
+                    - 2nd session: see first
+                        If still not good: do another
+                        Max session number: 5 total sessions
+
+GERHORT:
+
+- 1st session: acquire data
+            - 5 seconds each sub-session
+                - rest, move up, down, left, right
+    - Monitor resonant freq and DB levels of Freq.
+        (amplitude of signal in freq domain)
+
+    - Counts to see which freqs appear the most
+        have the freq and a standard deviation
+
+    - If the count of commmon freqs does not appear as often as we would like, ask them to redo session
+    - Save the freqs to their profile

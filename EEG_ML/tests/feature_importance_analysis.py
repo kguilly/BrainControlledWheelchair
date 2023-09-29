@@ -8,7 +8,7 @@ from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K
 import read_edf_files
-# import innvestigate
+import innvestigate
 
 kernels, chans = 1, 64
 label_mapping = {
@@ -20,6 +20,17 @@ label_mapping = {
     }
 num_labels = 5
 X, Y = read_edf_files.reader() # use other function to read the edf files
+
+# X is of shape (trials, channels, values)
+
+'''
+frequency_of_values 
+for each trial
+    for each channel 
+        these_values = X[trial][channel]
+        frequency_of_values = fft(these_values) 
+        append frequency to bigger array 
+'''
 ################################################################
 ## Process, filter, and epoch the data
 # init arrays to train/validate/test. Make split 50/25/25
@@ -46,6 +57,7 @@ model = EEGNet(nb_classes=num_labels, Chans=X_train.shape[1], Samples=X_train.sh
 model.compile(loss='categorical_crossentropy', optimizer='adam',
               metrics = ['accuracy'])
 
+'''
 # call the analyzer
 analyzer = innvestigate.create_analyzer('lrp.z', model)
 
@@ -60,3 +72,14 @@ channel_relevance = np.sum(analysis, axis=(1,2))
 top_channels_indices = np.argsort(channel_relevance)[-16:]
 
 print(top_channels_indices)
+'''
+
+analyzer = innvestigate.create_analyzer('input', model)
+analysis = analyzer.analyze(X)
+
+print(analysis.shape)
+
+import matplotlib.pyplot as plt 
+plt.imshow(analysis[1], cmap='hot', interpolation='nearest')
+plt.axis('off')
+plt.show()
