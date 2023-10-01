@@ -12,3 +12,6 @@ This is a repository to house the machine learning code and Overleaf Project for
 
 `conference_101719.tex`
 - The LaTex document that produces the PDF
+
+
+[BrainFlow Documentation](https://brainflow.readthedocs.io/en/stable/Examples.html)
