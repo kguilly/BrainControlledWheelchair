@@ -3,7 +3,7 @@ import os
 import pyedflib
 
 # EEGNet specific imports
-from EEG_ML.EEGModels import EEGNet
+from utils.EEGModels import EEGNet
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import backend as K
@@ -48,7 +48,6 @@ y_test = Y[three_fourths:]
 print('x_train shape: ', X_train.shape, '\ny_train shape: ', y_train.shape)
 ################################################################
 ## Call EEGNet
-
 model = EEGNet(nb_classes=num_labels, Chans=X_train.shape[1], Samples=X_train.shape[2],
                dropoutRate=0.5, kernLength=32, F1=8, D=2, F2=16,
                  dropoutType= 'Dropout')
