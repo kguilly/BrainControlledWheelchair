@@ -1,5 +1,5 @@
 '''
-
+https://brainflow.readthedocs.io/en/stable/Examples.html
 This file will:
 - connect to the headset
 - prompt the user to imaging moving in a direction
@@ -8,16 +8,22 @@ This file will:
 - reopen the data and use to train the model
 '''
 import time
+import pandas as pd
+import numpy as np
+
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+from brainflow.data_filter import DataFilter
+
 class TrainingSeq():
     def __init__(self):
         self.info = 'file to connect to the headset and get the data'
-        self.storage_path = '/path/'
-        self.board = None
+        self.storage_path = './training_data/'
+        self.file_count = 0 # tracks how many times we go through training seq
 
         ##########################
         ## headset init params
-        self.timeout = None
+        self.board = None
+        self.timeout = 50
         self.ip_port = None
         self.ip_protocol = None
         self.serial_port = None
@@ -29,15 +35,12 @@ class TrainingSeq():
         self.master_board = None
         self.board_id = None
         ##########################
+
     def main(self):
         print("connecting to headset...")
-        # self.headset_connect()
+        self.headset_connect()
 
         # prompt the user:
-            # training sequence
-            # train the model
-            # test the model
-
         choice = ''
         while choice != 'X':
             print("\n\n###########################")
@@ -46,11 +49,11 @@ class TrainingSeq():
             print("\t- Train the model: 2")
             print("\t- Test the model: 3")
             print("\t- exit: X")
-            choice = input("Pick bitch: ")
+            choice = input("Pick one: ")
 
             if choice == '1':
                 print("\n***********************")
-                print("TRAINING SEQUENCE BITCH: GET READY")
+                print("TRAINING SEQUENCE: GET READY")
                 time.sleep(1)
                 self.training_sequence()
 
@@ -62,13 +65,15 @@ class TrainingSeq():
 
             elif choice == '3':
                 print("\n***********************")
-                print("GO HEAD LIL BOY TEST IT")
+                print("Using recorded data to test")
                 time.sleep(1)
                 self.test_the_model()
+
             else:
                 print("Wrong one try again")
 
-
+        # free the board after the session
+        self.board.release_all_sessions()
 
     def headset_connect(self):
 
@@ -89,32 +94,76 @@ class TrainingSeq():
 
     def training_sequence(self):
         # prompt the user, record the data, send out to a file
+
+        ## FORWARD
         self.countdown(3, "Imagine moving forward in: ", "Go")
-
+        self.board.start_stream()
         self.countdown(5, "", "Stop")
+        dataf = self.board.get_board_data()
+        self.board.stop_stream()
+        self.send_data_to_file(dataf, "forward")
         time.sleep(2)
 
+
+        ## BACKWARD
         self.countdown(3, "BACKWARDS", "Go")
-
+        self.board.start_stream()
         self.countdown(5, "", "STOP")
+        datab = self.board.get_board_data()
+        self.board.stop_stream()
+        self.send_data_to_file(datab, "backward")
         time.sleep(2)
 
+
+        ## LEFT
         self.countdown(3, 'LEFT', "GO")
-
+        self.board.start_stream()
         self.countdown(5, '', 'STOP')
+        datal = self.board.get_board_data()
+        self.board.stop_stream()
+        self.send_data_to_file(datal, "left")
         time.sleep(2)
 
+        ## RIGHT
         self.countdown(3, 'RIGHT', 'GO')
-
+        self.board.start_stream()
         self.countdown(5, '', 'STOP')
+        datar = self.board.get_board_data()
+        self.board.stop_stream()
+        self.send_data_to_file(datar, "right")
         time.sleep(1)
 
+        self.file_count += 1
+
+    def train_the_model(self):
+        pass
+
+    def test_the_model(self):
+        # activate the session with the board 
+        # for every 100 samples of data, read the data and send through the trained model
+        choice = ''
+        while choice.upper() != 'X':
+            
+            
+            choice = input()
+            
+            
+
+        
+        
+    
     def countdown(self, from_num, start_message, end_message):
         print(start_message)
         for i in range(from_num, 0, -1):
             print(i)
             time.sleep(1)
         print(end_message)
+
+
+    def send_data_to_file(self, data, label): 
+        filename = self.storage_path + label + '.csv'
+        DataFilter.write_file(data, filename, 'a') # TODO: MAKE SURE APPENDING WORKS AS EXPECTED 
+
 
 t = TrainingSeq()
 t.main()
