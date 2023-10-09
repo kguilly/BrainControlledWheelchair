@@ -11,7 +11,7 @@ def map_to_samples(total_secs, onset_sec, next_onset_sec, total_samples):
     return [start_sample, end_sample]
 
 
-def reader():
+def reader(passed_path, patient_num):
     label_mapping = {
         1: "Rest",
         2: "Squeeze Both Fists",
@@ -20,7 +20,9 @@ def reader():
         5: "Squeeze Right Hand",
     }
 
-    path = '/home/kaleb/Documents/eeg_dataset/files/S001'
+    str_patient_num = str(patient_num).zfill(3)
+    path = os.path.join(passed_path, 'S' + str_patient_num)
+    
     all_files = os.listdir(path)
     edf_files = [file for file in all_files if file.endswith('.edf')]
 
