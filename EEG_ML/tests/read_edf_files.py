@@ -144,7 +144,28 @@ def reader(passed_path, patient_num):
 
     X = np.array(reshaped_filtered_X)
     Y = np.array(Y)
-    print("X.shape: ", X.shape)
-    print("Y.shape: ", Y.shape)
+    # print("X.shape: ", X.shape)
+    # print("Y.shape: ", Y.shape)
 
     return X,Y
+
+
+def split_by_second(X, Y, sample_rate):
+    
+    trial_duration = X.shape[2]
+    num_segments = trial_duration // sample_rate
+
+    X_sec = np.empty((0, 64, sample_rate))
+    Y_sec = []
+
+    count = -1
+    for trial in X:
+        count += 1
+        for i in range(num_segments):
+            start_idx = i * (sample_rate)
+            end_idx = start_idx + sample_rate
+            segment = trial[:, start_idx:end_idx]
+            X_sec = np.vstack((X_sec, segment[np.newaxis]))
+            Y_sec.append(Y[count])
+
+    return X_sec, Y_sec
