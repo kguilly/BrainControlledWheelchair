@@ -6,6 +6,15 @@ This file will:
 - record data
 - format and store data
 - reopen the data and use to train the model
+
+
+#####################
+sudo usermod -aG dialout $USER
+sudo chmod a+rw /dev/ttyUSB0
+######################
+connection statistics: 
+board_type = 'CytonDaisy'
+
 '''
 import time
 import pandas as pd
@@ -25,12 +34,19 @@ class TrainingSeq():
         ##########################
         ## headset init params
         self.port = "/dev/ttyUSB0"
+        self.board = None
         ##########################
+
+
+    def handle_sample(self, sample):
+        print(sample)
+        print("Board ID: ", sample.board_id)
 
     def main(self):
         print("connecting to headset...")
         self.headset_connect()
         print("connection successful! \n")
+        self.board.start_stream(self.handle_sample)
 
         # prompt the user:
         choice = ''
@@ -68,7 +84,7 @@ class TrainingSeq():
         self.board.release_all_sessions()
 
     def headset_connect(self):
-
+        self.board = OpenBCICyton(port=self.port, daisy=True)
        
 
     def training_sequence(self):

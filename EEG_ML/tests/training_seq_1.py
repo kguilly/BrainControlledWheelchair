@@ -10,31 +10,37 @@ This file will:
 import time
 import pandas as pd
 import numpy as np
+import os
+
+from tensorflow.keras import utils as np_utils
+from tensorflow.keras import ModelCheckpoint    
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 from brainflow.data_filter import DataFilter
 
+from EEG_ML.EEGModels import EEGNet
+from EEG_ML.tests import read_edf_files as ref 
+
 class TrainingSeq():
     def __init__(self):
         self.info = 'file to connect to the headset and get the data'
-        self.storage_path = './training_data/'
-        self.file_count = 0 # tracks how many times we go through training seq
+        self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
         ##########################
         ## headset init params
         self.board = None
         self.timeout = 50
-        self.ip_port = None
-        self.ip_protocol = None
-        self.serial_port = None
-        self.mac_address = None
-        self.other_info = None
-        self.serial_number = None
-        self.ip_address = None
-        self.file = None
-        self.master_board = None
-        self.board_id = None
+        self.serial_port = '/dev/ttyUSB0'
+        self.board_id = BoardIds.CYTON_DAISY_BOARD
         ##########################
+
+        label_mapping = {
+            1: "rest",
+            2: "forward", # "Squeeze Both Fists",
+            3: "backward", # "Squeeze Both Feet",
+            4: "left", # "Squeeze Left Hand",
+            5: "right", # "Squeeze Right Hand",
+        }
 
     def main(self):
         print("connecting to headset...")
@@ -78,16 +84,7 @@ class TrainingSeq():
     def headset_connect(self):
 
         params = BrainFlowInputParams()
-        params.ip_port = self.ip_port
         params.serial_port = self.serial_port
-        params.mac_address = self.mac_address
-        params.other_info = self.other_info
-        params.serial_number = self.serial_number
-        params.ip_address = self.ip_address
-        params.ip_protocol = self.ip_protocol
-        params.timeout = self.timeout
-        params.file = self.file
-        params.master_board = self.master_board
 
         self.board = BoardShim(self.board_id, params)
         self.board.prepare_session()
@@ -106,6 +103,8 @@ class TrainingSeq():
 
 
         ## BACKWARD
+        print("\nGood job, get ready for the next section: BACKWARD")
+        time.sleep(1)
         self.countdown(3, "BACKWARDS", "Go")
         self.board.start_stream()
         self.countdown(5, "", "STOP")
@@ -116,6 +115,8 @@ class TrainingSeq():
 
 
         ## LEFT
+        print("\nGood job, get ready for the next section: LEFT")
+        time.sleep(1)
         self.countdown(3, 'LEFT', "GO")
         self.board.start_stream()
         self.countdown(5, '', 'STOP')
@@ -125,6 +126,8 @@ class TrainingSeq():
         time.sleep(2)
 
         ## RIGHT
+        print("\nGood job, get ready for the next section: RIGHT")
+        time.sleep(1)
         self.countdown(3, 'RIGHT', 'GO')
         self.board.start_stream()
         self.countdown(5, '', 'STOP')
@@ -133,10 +136,114 @@ class TrainingSeq():
         self.send_data_to_file(datar, "right")
         time.sleep(1)
 
+        ## REST
+        print("\nGood job, get ready for the next section: REST\n")
+        time.sleep(1)
+        self.countdown(3, 'REST', 'GO')
+        self.board.start_stream()
+        self.countdown(5, '', 'STOP')
+        datar = self.board.get_board_data()
+        self.board.stop_stream()
+        self.send_data_to_file(datar, "rest")
+        time.sleep(1)
+
+
         self.file_count += 1
 
     def train_the_model(self):
-        pass
+        # TODO: TEST THIS FUNCTIONN
+        # load the data into a file
+        X = []
+        Y = []
+        for file in os.listdir(self.storage_path):
+            # load the file into numpy array
+            # (trials, channels, samples)
+            this_x = np.loadtxt(file)
+            this_x = np.reshape(this_x, (1, this_x[0], this_x[1]))
+
+            this_y = []
+            # baed on name of file, select the label
+            if file == 'rest.csv':
+                this_y.append(1)
+            elif file == 'forward.csv':
+                this_y.append(2)
+            elif file == 'backward.csv':
+                this_y.append(3)
+            elif file == 'left.csv':
+                this_y.append(4)
+            elif file == 'right.csv':
+                this_y.append(5)
+
+            # separate by second
+            ref.split_by_second(X, Y, 120)
+
+            # append to the main x and y
+            X = np.vstack((X, this_x))
+
+            for label in this_y:
+                Y.append(label)
+
+        ## Process, filter, and epoch the data
+        # init arrays to train/validate/test. Make split 50/25/25
+        half = int(len(X) / 2)
+        quarter = int(half / 2)
+        three_fourths = half + quarter
+
+        X_train = X[:half, :, :]
+        X_validate = X[half : three_fourths, :, :]
+        X_test = X[three_fourths:, :, :]
+
+        y_train = Y[:half]
+        y_validate = Y[half:three_fourths]
+        y_test = Y[three_fourths:]
+
+        # convert labels to one-hot encoding
+        y_train = np_utils.to_categorical(y_train-1)
+        y_validate = np_utils.to_categorical(y_validate-1)
+        y_test = np_utils.to_categorical(y_test-1)
+
+        # convert data to NHWC (trials, channels, samples, kernels) format
+        kernels = 1
+        X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], kernels)
+        X_validate = X_validate.reshape(X_validate.shape[0], X_validate.shape[1], X_validate.shape[2], kernels)
+        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], kernels)
+
+        print('x_train shape: ', X_train.shape, '\ny_train shape: ', y_train.shape)
+        ################################################################
+        ## Call EEGNet
+
+        model = EEGNet(nb_classes=num_labels, Chans=X_train.shape[1], Samples=X_train.shape[2],
+                    dropoutRate=0.5, kernLength=32, F1=8, D=2, F2=16,
+                        dropoutType= 'Dropout')
+        
+        # compile the model and set the optimizers
+        model.compile(loss='categorical_crossentropy', optimizer='adam', 
+                    metrics = ['accuracy'])
+
+        # count number of parameters in the model
+        numParams    = model.count_params()    
+
+        # set a valid path for your system to record model checkpoints
+        checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                    save_best_only=True)
+        
+        # the weights all to be 1
+        class_weights = {0:1, 1:1, 2:1, 3:1, 4:1}   
+        
+        # fittedModel = 
+        model.fit(X_train, y_train, batch_size = 16, epochs = 300, 
+                        verbose = 2, validation_data=(X_validate, y_validate),
+                        callbacks=[checkpointer], class_weight = class_weights)
+        
+        # load optimal weights
+        model.load_weights('/tmp/checkpoint.h5')
+
+        probs       = model.predict(X_test)
+        preds       = probs.argmax(axis = -1)  
+        acc         = np.mean(preds == y_test.argmax(axis=-1))
+        print("Classification accuracy: %f " % (acc))
+        
+        
 
     def test_the_model(self):
         # activate the session with the board 
@@ -162,7 +269,7 @@ class TrainingSeq():
 
     def send_data_to_file(self, data, label): 
         filename = self.storage_path + label + '.csv'
-        DataFilter.write_file(data, filename, 'a') # TODO: MAKE SURE APPENDING WORKS AS EXPECTED 
+        DataFilter.write_file(data, filename, 'a') 
 
 
 t = TrainingSeq()
