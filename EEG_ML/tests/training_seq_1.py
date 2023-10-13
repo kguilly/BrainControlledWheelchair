@@ -24,7 +24,9 @@ from EEG_ML.tests import read_edf_files as ref
 class TrainingSeq():
     def __init__(self):
         self.info = 'file to connect to the headset and get the data'
-        self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
+        self.user_path = '/home/kaleb/Desktop/kaleb_eeg_data/'
+        self.storage_path = os.path.join(self.user_path, 'headset_data')
+        # self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
         ##########################
         ## headset init params
@@ -160,6 +162,7 @@ class TrainingSeq():
             # (trials, channels, samples)
             this_x = np.loadtxt(file)
             this_x = np.reshape(this_x, (1, this_x[0], this_x[1]))
+            # TODO: only load the channels which are electrodes
 
             this_y = []
             # baed on name of file, select the label
@@ -211,7 +214,7 @@ class TrainingSeq():
         print('x_train shape: ', X_train.shape, '\ny_train shape: ', y_train.shape)
         ################################################################
         ## Call EEGNet
-
+        num_labels = 5
         model = EEGNet(nb_classes=num_labels, Chans=X_train.shape[1], Samples=X_train.shape[2],
                     dropoutRate=0.5, kernLength=32, F1=8, D=2, F2=16,
                         dropoutType= 'Dropout')
@@ -242,13 +245,18 @@ class TrainingSeq():
         preds       = probs.argmax(axis = -1)  
         acc         = np.mean(preds == y_test.argmax(axis=-1))
         print("Classification accuracy: %f " % (acc))
+
+        # TODO: save the model 
         
         
 
     def test_the_model(self):
         # activate the session with the board 
         # for every 100 samples of data, read the data and send through the trained model
+        
+        # TODO: Load the model
         choice = ''
+        print('####################\nTesting Results\n\tpress \'X\' to exit')
         while choice.upper() != 'X':
             
             
