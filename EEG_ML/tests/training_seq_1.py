@@ -246,7 +246,7 @@ class TrainingSeq():
         acc         = np.mean(preds == y_test.argmax(axis=-1))
         print("Classification accuracy: %f " % (acc))
 
-        # TODO: save the model 
+        # TODO: save the model to a file
         
         
 
