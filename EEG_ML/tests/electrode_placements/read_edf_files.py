@@ -165,10 +165,7 @@ def split_by_second(X, Y, sample_rate):
             start_idx = i * (sample_rate)
             end_idx = start_idx + sample_rate
             segment = trial[:, start_idx:end_idx]
-            try:
-                X_sec = np.vstack((X_sec, segment[np.newaxis]))
-            except:
-                X_sec = segment[np.newaxis] # X_sec = np.array(1, segment[np.newaxis])
+            X_sec = np.vstack((X_sec, segment[np.newaxis]))
             Y_sec.append(Y[count])
 
     return X_sec, Y_sec

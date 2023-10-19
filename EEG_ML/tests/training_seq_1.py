@@ -165,7 +165,7 @@ class TrainingSeq():
             # TODO: only load the channels which are electrodes
 
             this_y = []
-            # baed on name of file, select the label
+            # based on name of file, select the label
             if file == 'rest.csv':
                 this_y.append(1)
             elif file == 'forward.csv':
