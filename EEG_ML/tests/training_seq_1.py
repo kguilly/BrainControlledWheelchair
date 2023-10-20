@@ -13,7 +13,7 @@ import numpy as np
 import os
 
 from tensorflow.keras import utils as np_utils
-from tensorflow.keras import ModelCheckpoint    
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 from brainflow.data_filter import DataFilter
@@ -24,7 +24,8 @@ from EEG_ML.tests import read_edf_files as ref
 class TrainingSeq():
     def __init__(self):
         self.info = 'file to connect to the headset and get the data'
-        self.user_path = '/home/kaleb/Desktop/kaleb_eeg_data/'
+        self.user_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/' \
+                         'test_data/kaleb/'
         self.storage_path = os.path.join(self.user_path, 'headset_data')
         # self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
@@ -149,9 +150,6 @@ class TrainingSeq():
         self.send_data_to_file(datar, "rest")
         time.sleep(1)
 
-
-        self.file_count += 1
-
     def train_the_model(self):
         # TODO: TEST THIS FUNCTIONN
         # load the data into a file
@@ -275,8 +273,8 @@ class TrainingSeq():
         print(end_message)
 
 
-    def send_data_to_file(self, data, label): 
-        filename = self.storage_path + label + '.csv'
+    def send_data_to_file(self, data, label):
+        filename = os.path.join(self.storage_path, label + '.csv')
         DataFilter.write_file(data, filename, 'a') 
 
 

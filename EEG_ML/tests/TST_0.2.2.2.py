@@ -20,5 +20,5 @@ time.sleep(5)
 data = board.get_board_data()
 board.stop_stream()
 board.release_session()
-print(f'DATA Shape: {data.shape}\n\n#################################', data)
+print(f'DATA Shape: {data.shape}\n\n#################################\n', data)
 

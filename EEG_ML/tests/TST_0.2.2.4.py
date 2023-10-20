@@ -15,7 +15,7 @@ import pandas as pd
 
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
-
+from sklearn.model_selection import train_test_split
 
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
@@ -27,7 +27,7 @@ from EEG_ML.EEGModels import EEGNet
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
-folder_dir = os.path.join(cur_dir, "test_data/headset_data")
+folder_dir = os.path.join(cur_dir, "test_data/kaleb/headset_data")
 
 X = []
 Y = []
@@ -68,29 +68,16 @@ for file in os.listdir(folder_dir):
 print(f'X.shape: {X.shape}, and len of Y: {len(Y)}')
 
 ## Process, filter, and epoch the data
-# init arrays to train/validate/test. Make split 50/25/25
-half = int(len(X) / 2)
-quarter = int(half / 2)
-three_fourths = half + quarter
-
-X_train = X[:half, :, :]
-X_validate = X[half: three_fourths, :, :]
-X_test = X[three_fourths:, :, :]
-
-y_train = Y[:half]
-y_validate = Y[half:three_fourths]
-y_test = Y[three_fourths:]
+X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, random_state=42)
 
 # convert labels to one-hot encoding
-## TODO: fix dis
-y_train = np_utils.to_categorical(y_train - 1)
-y_validate = np_utils.to_categorical(y_validate - 1)
-y_test = np_utils.to_categorical(y_test - 1)
+y_train = np_utils.to_categorical([x-1 for x in y_train])
+y_test = np_utils.to_categorical([x-1 for x in y_test])
 
 # convert data to NHWC (trials, channels, samples, kernels) format
 kernels = 1
 X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], kernels)
-X_validate = X_validate.reshape(X_validate.shape[0], X_validate.shape[1], X_validate.shape[2], kernels)
+# X_validate = X_validate.reshape(X_validate.shape[0], X_validate.shape[1], X_validate.shape[2], kernels)
 X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], kernels)
 
 print('x_train shape: ', X_train.shape, '\ny_train shape: ', y_train.shape)
@@ -116,12 +103,12 @@ checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
 class_weights = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
 
 # fittedModel =
-model.fit(X_train, y_train, batch_size=16, epochs=300,
-          verbose=2, validation_data=(X_validate, y_validate),
+model.fit(X_train, y_train, batch_size=16, epochs=30,
+          verbose=2, # validation_data=(X_validate, y_validate),
           callbacks=[checkpointer], class_weight=class_weights)
 
 # load optimal weights
-model.load_weights('/tmp/checkpoint.h5')
+# model.load_weights('/tmp/checkpoint.h5')
 
 probs = model.predict(X_test)
 preds = probs.argmax(axis=-1)
@@ -130,10 +117,14 @@ print("Classification accuracy: %f " % (acc))
 
 # save the model to a file
 from keras.models import load_model
-model.save('model.h5') # save to the user's directory!
+model_dir = os.path.join(cur_dir, 'test_data/0.2.2.4_model.h5')
+model.save(model_dir) # save to the user's directory!
+print('SAVE SUCCESS')
 
 # load the model back into an obj
-loaded_model = load_model('model.h5')
+loaded_model = load_model(model_dir)
+time.sleep(2)
+print('LOAD SUCCESS')
 
 
 

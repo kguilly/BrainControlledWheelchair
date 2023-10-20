@@ -38,8 +38,9 @@ DataFilter.write_file(data, save_dir, 'w')
 # read from file
 read_data = DataFilter.read_file(save_dir)
 eeg_data = read_data[eeg_channels, :]
+df = pd.DataFrame(eeg_data)
 print(f'Final shape of data: {eeg_data.shape} ')
-print('Tail of df: ', eeg_data.tail(10))
+print('Tail of df: ', df.tail(10))
 print('##############################################################')
 
 # get 5 more seconds worth of data
@@ -55,7 +56,8 @@ DataFilter.write_file(data, save_dir, 'a')
 # read from file, make sure that length and tail is different
 read_data = DataFilter.read_file(save_dir)
 eeg_data = read_data[eeg_channels, :]
+df = pd.DataFrame(eeg_data)
 print(f'Final shape of data: {eeg_data.shape} ')
-print('Tail of df: ', eeg_data.tail(10))
+print('Tail of df: ', df.tail(10))
 print('##############################################################')
 

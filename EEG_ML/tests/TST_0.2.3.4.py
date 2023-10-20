@@ -1,12 +1,14 @@
 '''
-This is the first attempt at using a random forest to classify the EEG data
-and rank the importance of the electrodes
+This is test 0.2.3.4 of the Brain-Controlled Wheelchair Senior Design II
+project. This test uses a random forest classifier and converts the electrode
+data to tabular by find the power spectral density of each channel for each trial.
+For each subject, feature importances are selected and tallied. The summation of the
+feature importances for each subject are saved to the test_data directory of this repository
 
-# first need to perform feature extraction
-    # need to translate the 3d array into a 2d array
-    # spectral analysis? mean, variance, and other domain-specific features
-
+TEST FAILURE, use electrode selection from literature
 '''
+import os.path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -161,60 +163,46 @@ exit()
 '''
 
 ## for each subject, send through random forest
-top_electrodes = np.empty((0, 16))
-for i in range(1, 110): 
+feature_importance_df = pd.DataFrame(columns=['Electrode Name', 'Electrode Number', 'Feature Importance'])
+
+for i in range(1, 110):
     X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
     X, Y = ref.split_by_second(X, Y, 160)
-    
-    psd_values = [] # power spectral density
 
+    psd_values = [] # power spectral density
     for trial in X:
         trial_psd = [np.mean(compute_psd(channel_data)) for channel_data in trial]
         psd_values.append(trial_psd)
 
     X_flattened = np.array(psd_values)
 
-
-
-    X_train, X_test, y_train, y_test = train_test_split(X_flattened, Y, stratify=Y, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(X_flattened, Y, stratify=Y, random_state=42)
     rf = RandomForestClassifier(random_state=42)
     rf.fit(X_flattened, Y)
 
 
     # feature importance based on mean decrease in impurity
     importances = rf.feature_importances_
-    sorted_indices = np.argsort(importances)[::-1]
 
-    feature_names = [int(i+1) for i in range(X.shape[1])]
+    # if this is the first subject, build the df:
+    if i <= 1:
+        # aggregate feature importances and append to dataframe
+        for electrode_num, electrode_name in electrode_mapping.items():
+            importance_score = sum(importances[electrode_num -1 :: len(electrode_mapping)])
 
-    sorted_importances = importances[sorted_indices]
-    sorted_feature_names = np.array(feature_names)[sorted_indices]
+            # append to df
+            arr = [electrode_name, electrode_num, importance_score]
+            feature_importance_df.loc[len(feature_importance_df)] = arr
 
-    # grab the top 16 and store them in an array
-    top_16 = sorted_feature_names[:16]
-    top_electrodes = np.vstack((top_electrodes, top_16))
+    # for all other subjects, just add the importance values to the column
+    else:
+        feature_importance_df['Feature Importance'] = feature_importance_df['Feature Importance'] + importances
 
 
-# go through top_electrodes and find the electrodes that occurred the most amount of times
-flattened_top_electrodes = top_electrodes.flatten()
-unique_electrodes, counts = np.unique(flattened_top_electrodes, return_counts=True)
 
-sorted_indices = np.argsort(-counts)
-top_16_electrodes = unique_electrodes[sorted_indices[:16]]
-top_16_occurrences = counts[sorted_indices[:16]]
-
-print("\n\n#########################\nTop 16 electrodes and their counts: ")
-for electrode, occurrence in zip(top_16_electrodes, top_16_occurrences):
-    print(f"Electrode {electrode} occurred {occurrence} times. ")
-
-data = []
-for electrode_num, occurrence in zip(unique_electrodes, counts):
-    electrode_name = electrode_mapping.get(electrode_num)
-    data.append([electrode_num, electrode_name, occurrence])
-
-df = pd.DataFrame(data, columns=['Electrode Num', 'Electrode Name', 'Occurrences'])
-df = df.sort_values(by='Occurrences', ascending=False)
-df.to_csv('top_electrodes.csv', index=False)
+feature_importance_df = feature_importance_df.sort_values(by='Feature Importance', ascending=False)
+out_path = os.path.join(os.path.abspath(__file__), 'test_data/0.2.3.4.csv')
+feature_importance_df.to_csv(out_path, index=False)
 
 
 

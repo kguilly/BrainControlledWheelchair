@@ -3,6 +3,10 @@
 # maintaining that connection for 5 seconds. This test will be validated by
 # performing the test on multiple machines which span across multiple operating systems
 
+# TEST NOTE: FOR LINUX ALLOW PERMISSION TO THE PORT WITH COMMANDS:
+# sudo usermod -aG dialout $USER
+# sudo chmod a+rw /dev/ttyUSB0
+
 import time
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter
