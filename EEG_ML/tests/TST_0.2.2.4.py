@@ -9,6 +9,15 @@ import os
 import numpy as np
 import pandas as pd
 
+# from tensorflow import keras
+# from keras import utils as np_utils
+# from keras import ModelCheckpoint
+
+from tensorflow.keras import utils as np_utils
+from tensorflow.keras.callbacks import ModelCheckpoint
+
+
+
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter
 
@@ -28,7 +37,7 @@ for file in os.listdir(folder_dir):
     data = DataFilter.read_file(full_dir)
     eeg_data = data[eeg_channels, :]
     eeg_data_3d = np.reshape(eeg_data, (1, eeg_data.shape[0], eeg_data.shape[1]))
-    print(eeg_data_3d.shape)
+    # print(eeg_data_3d.shape)
 
     this_y = []
     # based on name of file, select the label
@@ -73,6 +82,7 @@ y_validate = Y[half:three_fourths]
 y_test = Y[three_fourths:]
 
 # convert labels to one-hot encoding
+## TODO: fix dis
 y_train = np_utils.to_categorical(y_train - 1)
 y_validate = np_utils.to_categorical(y_validate - 1)
 y_test = np_utils.to_categorical(y_test - 1)
@@ -120,10 +130,10 @@ print("Classification accuracy: %f " % (acc))
 
 # save the model to a file
 from keras.models import load_model
-# model.save('model.h5') # save to the user's directory!
+model.save('model.h5') # save to the user's directory!
 
 # load the model back into an obj
-# loaded_model = load_model('model.h5')
+loaded_model = load_model('model.h5')
 
 
 
