@@ -57,7 +57,7 @@ while 1:
     print(f'prob dist: {probs} .... pred: {prediction}')
 
     # if 10 seconds have passed, end the program
-    if count > 10:
+    if count > 15:
         break
     count += 1
 
