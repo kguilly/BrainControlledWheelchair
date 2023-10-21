@@ -5,13 +5,20 @@ from the headset and generates predictions once a second from incoming data
 '''
 import os
 import time
-
+import numpy as np
 from tensorflow.keras import utils as np_utils
 from keras.models import load_model
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 
 count = 0
+label_decoding = {
+        0: "Rest",
+        1: "Squeeze Both Fists",
+        2: "Squeeze Both Feet",
+        3: "Squeeze Left Hand",
+        4: "Squeeze Right Hand",
+    }
 
 # load the model into the program
 cur_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,10 +42,19 @@ while 1:
     # grab the data and format
     eeg_data = data[eeg_channels, :]
     # reformat to (1, 16, samples(120))
+    if eeg_data.shape[1] < 120:
+        eeg_data = np.pad(eeg_data, ((0,0), (0,120-eeg_data.shape[1])),
+                          mode='constant', constant_values=0)
+    elif eeg_data.shape[1] > 120:
+        eeg_data = eeg_data[:, 1:121]
+    eeg_3d_data = eeg_data.reshape(1, eeg_data.shape[0], 120, 1)
 
     # pass through model
-
+    probs = model.predict(eeg_3d_data)
     # print prediction
+    index = np.argmax(probs)
+    prediction = label_decoding.get(index)
+    print(f'prob dist: {probs} .... pred: {prediction}')
 
     # if 10 seconds have passed, end the program
     if count > 10:

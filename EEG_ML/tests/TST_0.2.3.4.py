@@ -201,7 +201,7 @@ for i in range(1, 110):
 
 
 feature_importance_df = feature_importance_df.sort_values(by='Feature Importance', ascending=False)
-out_path = os.path.join(os.path.abspath(__file__), 'test_data/0.2.3.4.csv')
+out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_data/0.2.3.4.csv')
 feature_importance_df.to_csv(out_path, index=False)
 
 
