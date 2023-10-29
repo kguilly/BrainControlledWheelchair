@@ -150,12 +150,12 @@ def reader(passed_path, patient_num):
     return X,Y
 
 
-def split_by_second(X, Y, sample_rate):
+def split_by_second(X, Y, sample_rate, num_channels):
     
     trial_duration = X.shape[2]
     num_segments = trial_duration // sample_rate
 
-    X_sec = np.empty((0, 64, sample_rate))
+    X_sec = np.empty((0, num_channels, sample_rate))
     Y_sec = []
 
     count = -1
@@ -172,3 +172,46 @@ def split_by_second(X, Y, sample_rate):
             Y_sec.append(Y[count])
 
     return X_sec, Y_sec
+
+
+def convolutional_split(X, Y, samples_to_jump_by, trial_len, num_channels):
+    '''
+    Func to split the training data in a convolutional manner
+    X: your training data
+    Y: your labels for training data
+    samples_to_jump_by: the number of samples to skip b/w each trial. For ex,
+    if trial_len is 100, then a good num for this may be 10.
+    trial_len: desired number of samples for each trial
+    num_channels: the number of electrodes on the cap
+    '''
+
+    # can either combine all training data into a single trial
+    # or i can just split the data in the way that it is now
+    # DECISION: just use it the way it is now, may result in a better
+    # accuracy
+    X_mod = np.empty((0, num_channels, trial_len))
+    Y_mod = []
+
+    count = -1
+    for trial in X:
+        start_idx = 0
+        end_idx = trial_len
+        count += 1
+        while True:
+            try:
+                # segment the array and append to X_mod
+                segment = trial[:, start_idx:end_idx]
+                if len(segment[1]) < trial_len:
+                    break
+                try:
+                    X_mod = np.vstack((X_mod, segment[np.newaxis]))
+                except:
+                    X_mod = segment[np.newaxis]
+                Y_mod.append(Y[count])
+
+                start_idx += samples_to_jump_by
+                end_idx += samples_to_jump_by
+            except:
+                break
+
+    return X_mod, Y_mod
