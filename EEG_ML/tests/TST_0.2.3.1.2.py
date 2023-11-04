@@ -111,7 +111,10 @@ for i in range(1,110):
 
         with open(output_path, 'a', newline='') as file:
             csv_writer = csv.DictWriter(file, fieldnames=col_names)
-            data = [acc_normal, acc_split]
+            data = {
+                'Keep Format' : acc_normal,
+                'Split Training Data' : acc_split
+            }
             csv_writer.writerow(data)
     except:
         continue

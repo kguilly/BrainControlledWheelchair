@@ -114,7 +114,11 @@ for i in range(1, 110):
 
         with open(output_path, 'a', newline='') as file:
             csv_writer = csv.DictWriter(file, fieldnames=col_names)
-            data = [acc_normal, acc_sec, acc_conv]
+            data = {
+                'Keep Format' : acc_normal,
+                'Split by Second' : acc_sec,
+                'Convolutional Split' : acc_conv
+            }
             csv_writer.writerow(data)
     except:
         continue
