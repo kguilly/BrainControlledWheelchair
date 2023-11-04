@@ -196,7 +196,7 @@ def EEGNet(nb_classes, Chans = 64, Samples = 128,
                          kernel_constraint = max_norm(norm_rate))(flatten)
     softmax      = Activation('softmax', name = 'softmax')(dense)
 
-    print('test print statement\n\n\n\n\n\n')
+    # print('test print statement\n\n\n\n\n\n')
     
     return Model(inputs=input1, outputs=softmax)
 

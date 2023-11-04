@@ -73,8 +73,8 @@ X, Y = read_edf_files.reader('/home/kaleb/Documents/eeg_dataset/files/', 1) # us
 ## Process, filter, and epoch the data
 # init arrays to train/validate/test. Make split 50/25/25
 # split the data, skip by tenths
-X, Y = read_edf_files.convolutional_split(X, Y, 16, 240, 64)
-# X, Y = read_edf_files.split_by_second(X, Y, 160, 64)
+# X, Y = read_edf_files.convolutional_split(X, Y, 16, 240, 64)
+X, Y = read_edf_files.split_by_second(X, Y, 160, 64)
 half = int(len(X) / 2)
 quarter = int(half / 2)
 three_fourths = half + quarter

@@ -27,7 +27,18 @@ import os.path
 import read_edf_files as ref
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import utils as np_utils
-from EEG_ML.EEGModels import EEGNet
+# append the path to eeget
+import sys
+from contextlib import contextmanager
+@contextmanager
+def add_to_path(directory):
+    sys.path.append(directory)
+    try:
+        yield
+    finally:
+        sys.path.remove(directory)
+with add_to_path('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML'):
+    from EEGModels import EEGNet
 
 hyperparameter_map = {
     'dropoutRate' : [0.4, 0.5, 0.6],

@@ -24,8 +24,20 @@ import os.path
 import read_edf_files as ref
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import utils as np_utils
-from EEG_ML.EEGModels import EEGNet
+# append the path to eeget
+import sys
+from contextlib import contextmanager
+@contextmanager
+def add_to_path(directory):
+    sys.path.append(directory)
+    try:
+        yield
+    finally:
+        sys.path.remove(directory)
+with add_to_path('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML'):
+    from EEGModels import EEGNet
 
+os.environ["CUDA_VISIBLE_DEVICES"] = ''
 def get_model_acc(X, Y):
     half = int(len(X) / 2)
     quarter = int(half / 2)
@@ -65,7 +77,8 @@ def get_model_acc(X, Y):
     # count number of parameters in the model
     numParams = model.count_params()
     # set a valid path for your system to record model checkpoints
-    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+    chkpt_filepath = '/home/kaleb/tmp/checkpoint.h5'
+    checkpointer = ModelCheckpoint(filepath=chkpt_filepath, verbose=1,
                                    save_best_only=True)
     # the syntax is {class_1:weight_1, class_2:weight_2,...}. Here just setting
     # the weights all to be 1
