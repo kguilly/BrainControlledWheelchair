@@ -1,22 +1,23 @@
 '''
-This is one version of the machine learning accuracy test
-for hte brain controlled wheelchair
+This is one of the subsets of the machine learning accuracy
+test.
 
-This test compares three versions of modifying the training data
-before feeding it into the model:
-- keeping the format as read
-- splitting the trials by the second
-- splitting the trials in a convolutional manner
+This test aims to see if splitting the incoming data affects
+the accuracy of the model. Every tenth of a second, the previous
+second and a half's worth of samples will be used to generate a 
+prediction, rather than waiting a second and a half for each 
+prediction. 
 
-Every subject from the open source dataset was used, and their accuracy
-scores for the model were kept in a pandas df. the scores for each method
-were then averaged
+Implementing a type of moving average filter on the incoming 
+data will be a great help in getting more predictions in the 
+same amount of time. 
 
-The dataset used:
-https://physionet.org/content/eegmmidb/1.0.0/
+This test will be run on every subject. The results will be saved in 
+./test_data/0.2.3.1.2.csv. The columns will be moving average vs
+no moving average. The rows are each subject. An average accuracy
+score will be assigned to each column
 
-from the PhysioToolkit Software:
-https://archive.physionet.org/physiotools/
+
 '''
 import pandas as pd
 import numpy as np
@@ -26,7 +27,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import utils as np_utils
 from EEG_ML.EEGModels import EEGNet
 
-def get_model_acc(X, Y):
+def get_model_acc_conv(X, Y, conv:bool):
     half = int(len(X) / 2)
     quarter = int(half / 2)
     three_fourths = half + quarter
@@ -38,6 +39,9 @@ def get_model_acc(X, Y):
     y_train = Y[:half]
     y_validate = Y[half:three_fourths]
     y_test = Y[three_fourths:]
+
+    if conv: 
+        X_test, y_test = ref.convolutional_split(X_test, y_test, 16, 240, 64)
 
     # convert labels to one-hot encoding
     y_train = np_utils.to_categorical([x - 1 for x in y_train])
@@ -79,31 +83,16 @@ def get_model_acc(X, Y):
     return acc
 
 
-df = pd.DataFrame(columns=['Keep Format', 'Split by Second', 'Convolutional Split'])
-# add a row
-# df.loc['Averaged Scores'] = [avg1, avg2, avg3]
-# df.loc[len(df)] = [score1, score2, score3]
-# get average of a column
-# df['col'].mean()
-# df.to_csv('scores.csv', index=True)
+df = pd.DataFrame(columns=['Keep Format', 'Split Training Data'])
 
 # for each subject
-for i in range(1, 110):
+for i in range(1,110):
     X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
-    acc_normal = get_model_acc(X,Y)
-    
-    X_sec, Y_sec = ref.split_by_second(X, Y, 160, 64)
-    acc_sec = get_model_acc(X_sec, Y_sec)
-    
-    X_conv, Y_conv = ref.convolutional_split(X, Y, 16, 240, 64)
-    acc_conv = get_model_acc(X_conv, Y_conv)  
-    
+    X, Y = ref.split_by_second(X, Y, 240, 64)
+    acc_normal = get_model_acc_conv(X, Y, False)
+    acc_split = get_model_acc_conv(X, Y, True)
 
-    df.loc[len(df)] = [acc_normal, acc_sec, acc_conv]
+    df.loc[len(df)] = [acc_normal, acc_split]
 
-df.loc['Averaged Scores'] = [df['Keep Format'].mean(), df['Split by Second'].mean(),
-                             df['Convolutional Split'].mean()]
-df.to_csv('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.1.csv', index=True)
-
-
-
+df.loc['Averaged Scores'] = [df['Keep Format'].mean(), df['Split Training Data'].mean()]
+df.to_csv('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.2.csv', index=True)
