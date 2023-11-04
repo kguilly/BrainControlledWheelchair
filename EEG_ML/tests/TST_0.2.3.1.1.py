@@ -91,32 +91,37 @@ def get_model_acc(X, Y):
     acc = np.mean(preds == y_test.argmax(axis=-1))
     return acc
 
-
-df = pd.DataFrame(columns=['Keep Format', 'Split by Second', 'Convolutional Split'])
-# add a row
-# df.loc['Averaged Scores'] = [avg1, avg2, avg3]
-# df.loc[len(df)] = [score1, score2, score3]
-# get average of a column
-# df['col'].mean()
-# df.to_csv('scores.csv', index=True)
+import csv
+# df = pd.DataFrame(columns=['Keep Format', 'Split by Second', 'Convolutional Split'])
+output_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.1.csv'
+col_names = ['Keep Format', 'Split by Second', 'Convolutional Split']
+with open(output_path, 'w', newline='') as file:
+    csv_writer = csv.DictWriter(file, fieldnames=col_names)
+    csv_writer.writeheader()
 
 # for each subject
 for i in range(1, 110):
-    X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
-    acc_normal = get_model_acc(X,Y)
-    
-    X_sec, Y_sec = ref.split_by_second(X, Y, 160, 64)
-    acc_sec = get_model_acc(X_sec, Y_sec)
-    
-    X_conv, Y_conv = ref.convolutional_split(X, Y, 16, 240, 64)
-    acc_conv = get_model_acc(X_conv, Y_conv)  
-    
 
-    df.loc[len(df)] = [acc_normal, acc_sec, acc_conv]
+    try:
+        X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
+        acc_normal = get_model_acc(X,Y)
 
+        X_sec, Y_sec = ref.split_by_second(X, Y, 160, 64)
+        acc_sec = get_model_acc(X_sec, Y_sec)
+
+        X_conv, Y_conv = ref.convolutional_split(X, Y, 16, 240, 64)
+        acc_conv = get_model_acc(X_conv, Y_conv)
+
+        with open(output_path, 'a', newline='') as file:
+            csv_writer = csv.DictWriter(file, fieldnames=col_names)
+            data = [acc_normal, acc_sec, acc_conv]
+            csv_writer.writerow(data)
+    except:
+        continue
+df = pd.read_csv(output_path)
 df.loc['Averaged Scores'] = [df['Keep Format'].mean(), df['Split by Second'].mean(),
                              df['Convolutional Split'].mean()]
-df.to_csv('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.1.csv', index=True)
+df.to_csv(output_path, index=True)
 
 
 

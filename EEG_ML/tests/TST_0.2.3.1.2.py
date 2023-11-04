@@ -93,17 +93,29 @@ def get_model_acc_conv(X, Y, conv:bool):
     acc = np.mean(preds == y_test.argmax(axis=-1))
     return acc
 
-
-df = pd.DataFrame(columns=['Keep Format', 'Split Training Data'])
+import csv
+# df = pd.DataFrame(columns=['Keep Format', 'Split Training Data'])
+output_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.2.csv'
+col_names = ['Keep Format', 'Split Training Data']
+with open(output_path, 'w', newline='') as file:
+    csv_writer = csv.DictWriter(file, fieldnames=col_names)
+    csv_writer.writeheader()
 
 # for each subject
 for i in range(1,110):
-    X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
-    X, Y = ref.split_by_second(X, Y, 240, 64)
-    acc_normal = get_model_acc_conv(X, Y, False)
-    acc_split = get_model_acc_conv(X, Y, True)
+    try:
+        X, Y = ref.reader(passed_path='/home/kaleb/Documents/eeg_dataset/files/', patient_num=i)
+        X, Y = ref.split_by_second(X, Y, 240, 64)
+        acc_normal = get_model_acc_conv(X, Y, False)
+        acc_split = get_model_acc_conv(X, Y, True)
 
-    df.loc[len(df)] = [acc_normal, acc_split]
+        with open(output_path, 'a', newline='') as file:
+            csv_writer = csv.DictWriter(file, fieldnames=col_names)
+            data = [acc_normal, acc_split]
+            csv_writer.writerow(data)
+    except:
+        continue
 
+df = pd.read_csv(output_path)
 df.loc['Averaged Scores'] = [df['Keep Format'].mean(), df['Split Training Data'].mean()]
-df.to_csv('/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.2.csv', index=True)
+df.to_csv(output_path, index=True)
