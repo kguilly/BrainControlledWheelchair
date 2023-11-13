@@ -57,7 +57,7 @@ for file in os.listdir(folder_dir):
     # print(f'this_x: {this_x.shape}, and len of this_y: {len(this_y)}')
 
     # append to the main X and Y
-    try:
+    try:  
         X = np.vstack((X, this_x))
     except:
         X = this_x
