@@ -9,6 +9,7 @@
 
 import time
 import os
+import itertools
 
 import numpy as np
 import pandas as pd
@@ -16,7 +17,7 @@ import pandas as pd
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
-
+from keras.models import load_model
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter
@@ -46,6 +47,14 @@ samples_to_jump_by = 18 # for the convolutional split training, this is the numb
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 num_channels = len(eeg_channels)
 
+# what each of the predictions from the model mean
+label_decoding = {
+    1: 'rest',
+    2: 'forward',
+    3: 'backward',
+    4: 'left',
+    5: 'right',
+}
 
 def get_trained_model(X, Y, dropoutRate=0.5, kernels=2, kernLength=32, F1=8, D=2, F2=16, batch_size=16):
     half = int(len(X) / 2)
@@ -105,7 +114,7 @@ def get_model_acc(trained_model, X_test, Y_test):
 def train_the_model(profile_path): 
     global num_samples, eeg_channels, num_channels, samples_to_jump_by
     # call function to pick the best hyperparameters
-
+    get_best_hyperparams()
     # find the headset data path
     data_dir = os.path.join(profile_path, 'headset_data')
 
@@ -144,13 +153,104 @@ def train_the_model(profile_path):
         for label in this_y:
             Y.append(label)
 
+    # after gathering together all of the data, call the function to get the best hyperparams
+    dropoutRate, kernels, kernLength, F1, D, F2, batch_size = get_best_hyperparams(X, Y)
+    
     # process, filter, and epoch the data 
-    model = get_trained_model(X, Y)
-    acc = get_model_acc(model)
+    model = get_trained_model(X, Y, dropoutRate=dropoutRate, kernels=kernels, kernLength=kernLength,
+                              F1=F1, D=D, F2=F2, batch_size=batch_size) # call the function to train the model
+    
+    last_quarter_idx = int(len(Y) * 0.75)
+    X_test = X[last_quarter_idx:, :, :]
+    Y_test = Y[last_quarter_idx:]
+    
+    acc = get_model_acc(model, X_test, Y_test) # call the function to get the acc
+
+    # save the trained model to a file and return the accuracy
+    model_dir = os.path.join(profile_path, 'trained_model.h5')
+    model.save(model_dir)
+    return acc
 
 
-def get_best_hyperparams():
-    pass
+def get_best_hyperparams(X, Y): # function will return a df that shows every combination of hyperparam and 
+                            # its accuaracy score
+    hyperparameter_map = {
+        'dropoutRate' : [0.4, 0.5, 0.6],
+        'kernels' : [1, 2, 3],
+        'kernLength' : [16, 32, 64],
+        'F1' : [4, 8, 16],
+        'D' : [1, 2, 3],
+        'F2' : [8, 16, 32],
+        'batch_size' : [8, 16, 32]
+    }
+    
+    df = pd.DataFrame(columns=['combination', 'acc'])
+    combinations = list(itertools.product(*(hyperparameter_map[param] for param in hyperparameter_map)))
+    for combination in combinations:
+        try:
+            model = get_trained_model(X, Y, combination[0], combination[1], combination[2],
+                                combination[3], combination[4], combination[5], combination[6])
+            last_quarter_idx = int(len(Y) * 0.75)
 
-def generate_prediction(): # function to generate prediction given the trained model
-    pass
+            X_test = X[last_quarter_idx:, :, :]
+            Y_test = Y[last_quarter_idx:]
+
+            acc = get_model_acc(model, X_test, Y_test)
+
+            # now add this info to the dataframe
+            df.loc[len(df)] = [combination, acc]
+
+        except:
+            continue
+
+    # grab the highest value of accuracy in the df
+    best_combo_row = df[df['acc'] == df['acc'].max()]
+    best_combo = best_combo_row.iloc[0]['combination']
+
+    # translate to the names of the params in best combo row
+    dropoutRate = best_combo[0]
+    kernels = best_combo[1]
+    kernLength = best_combo[2]
+    f1 = best_combo[3]
+    d = best_combo[4]
+    f2 = best_combo[5]
+    batch_size = best_combo[6]
+
+    return dropoutRate, kernels, kernLength, f1, d, f2, batch_size 
+
+def generate_prediction(board, profile_path): # function to generate prediction given the trained model
+    # THIS FUNCTION ASSUMES: 
+        # a session has already been activated
+        # the session has been recording for at least a second and a half alread
+
+    # load the user's trained model
+    model_path = os.path.join(profile_path, 'trained_model.h5')
+    model = load_model(model_path)
+
+    # generate a prediction
+    preds = []
+    while len(preds) <= 10:
+        time.sleep(0.1)
+        try:
+            data = board.get_data(num_samples)
+        except:
+            continue
+
+        eeg_data = data[eeg_channels, :]
+        eeg_3d_data = eeg_data.reshape(1, eeg_data.shape[0], 120, 1)
+
+        # pass through the model
+        probs = model.predict(eeg_3d_data)
+        
+        # get the highest values prediction
+        index = np.argmax(probs)
+        prediction = label_decoding.get(index)
+
+        # append that prediction to the arr
+        preds.append(prediction)
+
+    # return the value which appears the most
+    most_common_output = np.argmax(np.bincount(preds))
+    return most_common_output
+
+    

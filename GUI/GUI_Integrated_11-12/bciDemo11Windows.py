@@ -10,6 +10,7 @@ import threading
 
 # Kaleb's imports: 
 import Headset_files.initialization as init
+import Headset_files.headset_ml as ml
 # PYTHON 3.9.2 REQUIRED TO OPERATE CORRECTLY!
 
 
@@ -116,13 +117,20 @@ def right_joystick():
 ################################################################################################################
 # "Directional Window" window updater
 ################################################################################################################
-
+start_headset_session_flag = True # this variable controls when to record data from headset
 def directional_window():
     #if (lower_min_trigger < chanX.value < upper_min_trigger) and (lower_min_trigger < chanY.value < upper_min_trigger):
     #    stop_joystick()
-    global keyboard_user_mode
+    global keyboard_user_mode, headset, curr_file_path
 
+    # if we want to use the keyboard mode (rather than the headset outputs)
     if keyboard_user_mode == True:
+        
+        if not start_headset_session_flag: # if we're switching away from using the headset
+            init.end_session(headset)
+            start_headset_session_flag = True # flag that indicates that the 
+                                              # headset session will need to restart 
+
         if (keyboard.is_pressed("w")) and (keyboard.is_pressed("Shift")):
             brisk_joystick()
         elif (keyboard.is_pressed("w")):
@@ -137,9 +145,35 @@ def directional_window():
             stop_joystick()
         #---------------------------------------------------------------------------------------------------------
     else: # use the output from the headset
-    # Stop indicator
         # TODO: GENERATE PREDICTIONS FROM INCOMING DATA
-        pass
+        
+        # if this is the first time, start the session and wait 
+        if start_headset_session_flag:
+            start_headset_session_flag = False
+            # start the session and wait a second and a half to start gathering data
+            init.start_session(headset)
+            time.sleep(1.5)
+
+        # get the directory of the user_profile
+        pr
+        ofile_path = os.path.join(curr_file_path, profSelected)
+          
+        # this function will take 1 second to return
+        prediction = ml.generate_prediction(headset, profile_path)
+
+        if prediction == 'forward':
+            brisk_joystick()
+        elif prediction == 'backward':
+            reverse_joystick()
+        elif prediction == 'left':
+            left_joystick()
+        elif prediction == 'right':
+            right_joystick()
+        else: # the user is resting
+            stop_joystick()
+
+
+        
 
     #window.bind("<Left>", slow_joystick())
 
@@ -1206,7 +1240,13 @@ trainingBackwardBeginCountdownLabel.pack(padx=0,pady=0,side=tk.BOTTOM)
 # "Training Complete" window creation and population
 ################################################################################################################   
 # TODO: make a waiting screen for the model to train
-# after the training is complete, train the model
+# after the training is complete
+accuracy = ml.train_the_model() # the model is saved to the user's directory
+
+# TODO: display to the user the accuaracy of their trained model
+print(f'Your trained model\'s accuracy is {accuracy}')
+
+
  
 
 
