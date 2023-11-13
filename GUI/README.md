@@ -19,3 +19,9 @@
 - numpy==1.26.0
 
 - pandas==2.1.1
+
+- sklearn==1.3.2
+
+- pyedflib==0.1.36
+
+NOTE: most packages can be installed from the command line using pip

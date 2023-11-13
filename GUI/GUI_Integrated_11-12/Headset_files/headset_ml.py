@@ -22,8 +22,8 @@ from keras.models import load_model
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter
 
-from EEG_ML.tests import read_edf_files as ref
-from EEG_ML.EEGModels import EEGNet
+# from EEG_ML.tests import read_edf_files as ref
+# from EEG_ML.EEGModels import EEGNet
 
 # append the path to eeget
 import sys
@@ -113,8 +113,7 @@ def get_model_acc(trained_model, X_test, Y_test):
 
 def train_the_model(profile_path): 
     global num_samples, eeg_channels, num_channels, samples_to_jump_by
-    # call function to pick the best hyperparameters
-    get_best_hyperparams()
+
     # find the headset data path
     data_dir = os.path.join(profile_path, 'headset_data')
 
@@ -229,7 +228,7 @@ def generate_prediction(board, profile_path): # function to generate prediction 
 
     # generate a prediction
     preds = []
-    while len(preds) <= 10:
+    while len(preds) <= 10: # MAY CAUSE MORE PROBLEMS, resolved with threading
         time.sleep(0.1)
         try:
             data = board.get_data(num_samples)

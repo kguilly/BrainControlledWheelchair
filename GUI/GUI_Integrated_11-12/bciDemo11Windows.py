@@ -27,8 +27,26 @@ prof3Name = ""
 trainingFlag = False
 
 # TODO: implement user choice for config of com port / directory
-# this is the directory that the heaadset is connected to
-headset_directory = 'COM1' # for windows, a com port, for linux, usually '/dev/ttyUSB0'
+# this is the directory that the heaadset is connected to, needs to be configured on each run
+headset_directory = None # for windows, a com port, for linux, usually '/dev/ttyUSB0'
+
+# TODO: ADD A TRAINING SEQUENCE FOR RESTING
+
+###### TO CHECK IF WINDOWS OR LINUX :
+import platform
+
+system_platform = platform.system()
+if system_platform == "Linux":
+    headset_directory = '/dev/ttyUSB0'
+
+elif system_platform == "Windows":
+    headset_directory = 'COM3'
+
+elif system_platform == 'Darwin':
+    headset_directory = 'idk'
+    print("we hate mac")
+    exit(1)
+
 curr_file_path = os.path.dirname(os.path.abspath(__file__))
 
 # TODO: implement two different choices of using: either use the keyboard or headset
@@ -145,18 +163,17 @@ def directional_window():
             stop_joystick()
         #---------------------------------------------------------------------------------------------------------
     else: # use the output from the headset
-        # TODO: GENERATE PREDICTIONS FROM INCOMING DATA
+        # TODO: THREAD (maybe)
         
         # if this is the first time, start the session and wait 
         if start_headset_session_flag:
             start_headset_session_flag = False
             # start the session and wait a second and a half to start gathering data
-            init.start_session(headset)
-            time.sleep(1.5)
+            status = init.start_session(headset)
+            time.sleep(1.5) # MAY CAUSE PROBLEMS
 
         # get the directory of the user_profile
-        pr
-        ofile_path = os.path.join(curr_file_path, profSelected)
+        profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
           
         # this function will take 1 second to return
         prediction = ml.generate_prediction(headset, profile_path)
@@ -543,9 +560,8 @@ def training_csv_populator(label, profile_path):
 
 
 
-
 def training_ready_button(direction):
-    global trainingFlag, profSelected
+    global trainingFlag, profSelected, curr_file_path
     labelBeginChoice = ""
     labelSessionChoice = ""
     directionButtonChoice = ""
@@ -589,9 +605,8 @@ def training_ready_button(direction):
     updaterChoice()
     print("0")
     
-    # profile path
-    global profSelected, curr_file_path
-    profile_dir = os.path.join(curr_file_path, profSelected)
+    # profile path 
+    profile_dir = os.path.join(curr_file_path, 'Profiles', 'Profile' + profSelected)
     # display other countdown here
     # call training_csv_populator here to start populating csv file.
     # need to pass the current profile directory and the label
@@ -1239,11 +1254,15 @@ trainingBackwardBeginCountdownLabel.pack(padx=0,pady=0,side=tk.BOTTOM)
 ################################################################################################################
 # "Training Complete" window creation and population
 ################################################################################################################   
+
+# TODO: restructure where this is at, it NOT WORK
 # TODO: make a waiting screen for the model to train
 # after the training is complete
-accuracy = ml.train_the_model() # the model is saved to the user's directory
+profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
+accuracy = ml.train_the_model(profile_path) # the model is saved to the user's directory
 
 # TODO: display to the user the accuaracy of their trained model
+# TODO: TRAIN MORE? OR USE THE SYSTEM? 
 print(f'Your trained model\'s accuracy is {accuracy}')
 
 
