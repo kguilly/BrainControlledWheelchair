@@ -11,6 +11,7 @@ import time
 import pandas as pd
 import numpy as np
 import os
+import csv
 
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -18,14 +19,29 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 from brainflow.data_filter import DataFilter
 
-from EEG_ML.EEGModels import EEGNet
-from EEG_ML.tests import read_edf_files as ref 
+# append the path to eeget
+import sys
+from contextlib import contextmanager
+@contextmanager
+def add_to_path(directory):
+    sys.path.append(directory)
+    try:
+        yield
+    finally:
+        sys.path.remove(directory)
+curr_file_path = os.path.dirname(os.path.abspath(__file__))
+dir_above = os.path.dirname(curr_file_path)
+with add_to_path(dir_above):
+    from EEGModels import EEGNet
+    import read_edf_files as ref
+
 
 class TrainingSeq():
     def __init__(self):
         self.info = 'file to connect to the headset and get the data'
-        self.user_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/' \
-                         'test_data/kaleb/'
+        # self.user_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/' \
+        #                  'test_data/kaleb/'
+        self.user_path = os.path.join(curr_file_path, 'test_data', 'kaleb_bald')
         self.storage_path = os.path.join(self.user_path, 'headset_data')
         # self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
@@ -33,7 +49,7 @@ class TrainingSeq():
         ## headset init params
         self.board = None
         self.timeout = 50
-        self.serial_port = '/dev/ttyUSB0'
+        self.serial_port = 'COM3'
         self.board_id = BoardIds.CYTON_DAISY_BOARD
         ##########################
 
@@ -275,6 +291,14 @@ class TrainingSeq():
 
     def send_data_to_file(self, data, label):
         filename = os.path.join(self.storage_path, label + '.csv')
+        if not os.path.exists(self.storage_path):
+            os.makedirs(self.storage_path)
+            
+        if not os.path.exists(filename): # if the file does not exist, create it 
+            with open(filename, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([])
+        
         DataFilter.write_file(data, filename, 'a') 
 
 

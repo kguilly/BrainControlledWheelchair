@@ -9,7 +9,7 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter
 
 params = BrainFlowInputParams()
-params.serial_port = '/dev/ttyUSB0' # for Linux, check com ports for windows
+params.serial_port = 'COM3' # for Linux, check com ports for windows
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
 
 board.prepare_session()
