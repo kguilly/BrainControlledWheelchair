@@ -139,7 +139,7 @@ start_headset_session_flag = True # this variable controls when to record data f
 def directional_window():
     #if (lower_min_trigger < chanX.value < upper_min_trigger) and (lower_min_trigger < chanY.value < upper_min_trigger):
     #    stop_joystick()
-    global keyboard_user_mode, headset, curr_file_path
+    global keyboard_user_mode, headset, curr_file_path, start_headset_session_flag
 
     # if we want to use the keyboard mode (rather than the headset outputs)
     if keyboard_user_mode == True:
@@ -668,6 +668,15 @@ def training_next_button(direction, directionButtonChoice):
 
 
 def training_complete_finish_button():
+    # TODO: make a waiting screen for the model to train
+    # after the training is complete
+    profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
+    accuracy = ml.train_the_model(profile_path)  # the model is saved to the user's directory
+
+    # TODO: display to the user the accuaracy of their trained model
+    # TODO: TRAIN MORE? OR USE THE SYSTEM?
+    print(f'Your trained model\'s accuracy is {accuracy}')
+
     window.deiconify()
     trainingCompleteWindow.withdraw()
     directional_window()
@@ -1254,21 +1263,6 @@ trainingBackwardBeginCountdownLabel.pack(padx=0,pady=0,side=tk.BOTTOM)
 ################################################################################################################
 # "Training Complete" window creation and population
 ################################################################################################################   
-
-# TODO: restructure where this is at, it NOT WORK
-# TODO: make a waiting screen for the model to train
-# after the training is complete
-profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
-accuracy = ml.train_the_model(profile_path) # the model is saved to the user's directory
-
-# TODO: display to the user the accuaracy of their trained model
-# TODO: TRAIN MORE? OR USE THE SYSTEM? 
-print(f'Your trained model\'s accuracy is {accuracy}')
-
-
- 
-
-
 # "Training Complete" window settings
 trainingCompleteWindow = tk.Tk()
 trainingCompleteWindow.title('Training Complete!')
