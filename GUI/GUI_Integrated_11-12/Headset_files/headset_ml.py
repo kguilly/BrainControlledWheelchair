@@ -56,7 +56,7 @@ label_decoding = {
     5: 'right',
 }
 
-def get_trained_model(X, Y, dropoutRate=0.5, kernels=2, kernLength=32, F1=8, D=2, F2=16, batch_size=16):
+def get_trained_model(X, Y, dropoutRate=0.5, kernels=1, kernLength=32, F1=8, D=2, F2=16, batch_size=16):
     half = int(len(X) / 2)
     quarter = int(half / 2)
     three_fourths = half + quarter
