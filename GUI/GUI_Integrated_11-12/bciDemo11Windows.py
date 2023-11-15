@@ -670,6 +670,7 @@ def training_next_button(direction, directionButtonChoice):
 def training_complete_finish_button():
     # TODO: make a waiting screen for the model to train
     # after the training is complete
+    # TODO: make y_train one hot encoded, SHUFFLE THE ARRAYS BEFORE TRAINING
     profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
     accuracy = ml.train_the_model(profile_path)  # the model is saved to the user's directory
 

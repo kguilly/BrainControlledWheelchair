@@ -1,4 +1,0 @@
-'''
-Signal Denoising and Filtering:
-
-'''
