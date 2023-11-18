@@ -104,7 +104,7 @@ hyperparameter_map = {
     'batch_size' : [8, 16, 32]
 }
 
-output_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.0.csv'
+output_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/test_data/0.2.3.1.0_again.csv'
 col_names = ['Subject', 'HyperParams', 'Acc Score']
 with open(output_path, 'w', newline='') as file:
     csv_writer = csv.DictWriter(file, fieldnames=col_names)
@@ -112,8 +112,9 @@ with open(output_path, 'w', newline='') as file:
 
 import itertools
 combinations = list(itertools.product(*(hyperparameter_map[param] for param in hyperparameter_map)))
-random_subjects = [7, 13, 84]
-
+# random_subjects = [7, 13, 84]
+# new rando
+random_subjects = [52]
 for subject in random_subjects:
     for combination in combinations:
         try:
