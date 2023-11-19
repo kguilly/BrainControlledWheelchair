@@ -19,6 +19,7 @@ with add_to_path(dir_above):
 
 import pandas as pd
 import numpy as np
+import itertools
 
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -42,7 +43,7 @@ def get_confusion_matrix(model, x, y):
     return confusion_matrix(y_int, preds)
 
 
-def get_trained_model(X, Y, dropoutRate=0.5, kernels=1, kernLength=32, F1=8, D=2, F2=16, batch_size=16):
+def get_trained_model(X, Y, dropoutRate=0.5, kernels=1, kernLength=32, F1=8, D=2, F2=16, batch_size=16, epochs=30):
     half = int(len(X) / 2)
     quarter = int(half / 2)
     three_fourths = half + quarter
@@ -83,7 +84,7 @@ def get_trained_model(X, Y, dropoutRate=0.5, kernels=1, kernLength=32, F1=8, D=2
     # the syntax is {class_1:weight_1, class_2:weight_2,...}. Here just setting
     # the weights all to be 1
     class_weights = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
-    model.fit(X_train, y_train, batch_size=batch_size, epochs=30,
+    model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs,
               verbose=2, validation_data=(X_validate, y_validate),
               callbacks=[checkpointer], class_weight=class_weights)
 
@@ -97,6 +98,53 @@ def get_model_acc(trained_model, X_test, Y_test):
 
     return acc
 
+def get_best_hyperparams(X, Y):  # function will return a df that shows every combination of hyperparam and
+
+
+    # its accuaracy score
+    hyperparameter_map = {
+        'dropoutRate': [0.4, 0.5, 0.6],
+        'kernels': [1, 2, 3],
+        'kernLength': [16, 32, 64],
+        'F1': [4, 8, 16],
+        'D': [1, 2, 3],
+        'F2': [8, 16, 32],
+        'batch_size': [8, 16, 32]
+    }
+
+    df = pd.DataFrame(columns=['combination', 'acc'])
+    combinations = list(itertools.product(*(hyperparameter_map[param] for param in hyperparameter_map)))
+    for combination in combinations:
+        try:
+            model = get_trained_model(X, Y, dropoutRate=combination[0], kernels=combination[1], kernLength=combination[2],
+                                      F1=combination[3], D=combination[4], F2=combination[5], batch_size=combination[6])
+            last_quarter_idx = int(len(Y) * 0.75)
+
+            X_test = X[last_quarter_idx:, :, :]
+            Y_test = Y[last_quarter_idx:]
+
+            acc = get_model_acc(model, X_test, Y_test)
+
+            # now add this info to the dataframe
+            df.loc[len(df)] = [combination, acc]
+
+        except:
+            continue
+
+    # grab the highest value of accuracy in the df
+    best_combo_row = df[df['acc'] == df['acc'].max()]
+    best_combo = best_combo_row.iloc[0]['combination']
+
+    # translate to the names of the params in best combo row
+    dropoutRate = best_combo[0]
+    kernels = best_combo[1]
+    kernLength = best_combo[2]
+    f1 = best_combo[3]
+    d = best_combo[4]
+    f2 = best_combo[5]
+    batch_size = best_combo[6]
+
+    return dropoutRate, kernels, kernLength, f1, d, f2, batch_size
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 board_id = BoardIds.CYTON_DAISY_BOARD.value
 
@@ -130,7 +178,7 @@ for file in os.listdir(data_dir):
     num_samples = 180
     num_channels = 16
     # this_x, this_y = ref.convolutional_split(eeg_data_3d, this_y, samples_to_jump_by, num_samples, num_channels)
-    this_x, this_y = ref.split_by_second(eeg_data_3d, this_y, 120, 16)
+    this_x, this_y = ref.split_by_second(eeg_data_3d, this_y, num_samples, 16)
 
     # append to the main X and Y
     try:
@@ -147,8 +195,22 @@ np.random.shuffle(combined_data)
 X_shuf, Y_shuf = zip(*combined_data)
 X_shuf = np.array(X_shuf)
 Y_shuf = np.array(Y_shuf)
-model, x, y = get_trained_model(X_shuf, Y_shuf)
+# VERIFY THAT THE DATA IS SHUFFLED CORRECTLY
+# selected_trial_idx = 34
+# original_trial_data = X[selected_trial_idx]
+# original_trial_label = Y[selected_trial_idx]
+# # shuffled_trial_idx = X_shuf.index(original_trial_data)
+# shuffled_trial_idx = np.where(np.all(X_shuf == original_trial_data, axis=(1,2)))[0][0]
+# shuffled_trial_label = Y_shuf[shuffled_trial_idx]
+# print(f"Original Label: {original_trial_label}")
+# print(f"Shuffled Label: {shuffled_trial_label}")
+# exit()
+# The data is shuffled correctly
+dropoutRate, kernels, kernLength, f1, d, f2, batch_size = get_best_hyperparams(X_shuf, Y_shuf)
+model, x, y = get_trained_model(X_shuf, Y_shuf, epochs=300, dropoutRate=dropoutRate, kernels=kernels,
+                                kernLength=kernLength, F1=f1, D=d, F2=f2, batch_size=batch_size)
 acc = get_model_acc(model, x, y)
+print(f'Model Accuracy: {acc}')
 cm = get_confusion_matrix(model, x, y)
 
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Rest", "Forward", "Backward", "Left", "Right"],

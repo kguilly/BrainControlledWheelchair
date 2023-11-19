@@ -11,6 +11,7 @@
 ### Package versions for machine learning: 
 
 - tensorflow==2.14.0
+  - for GPU users: pip install tensorflow[and-cuda]
 
 - keras==2.14.0
 
@@ -21,6 +22,7 @@
 - pandas==2.1.1
 
 - sklearn==1.3.2
+  - pip install scikit-learn==1.3.2
 
 - pyedflib==0.1.36
 
