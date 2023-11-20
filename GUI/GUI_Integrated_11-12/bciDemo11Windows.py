@@ -11,6 +11,7 @@ import threading
 # Kaleb's imports: 
 import Headset_files.initialization as init
 import Headset_files.headset_ml as ml
+import wheelchair_files.wheelchair as wc
 # PYTHON 3.9.2 REQUIRED TO OPERATE CORRECTLY!
 
 
@@ -151,16 +152,24 @@ def directional_window():
 
         if (keyboard.is_pressed("w")) and (keyboard.is_pressed("Shift")):
             brisk_joystick()
+            wc.receive_and_transmit_keyboard_input('w')
         elif (keyboard.is_pressed("w")):
             slow_joystick()
+            wc.receive_and_transmit_keyboard_input('w')
         elif (keyboard.is_pressed("s")):
             reverse_joystick()
+            wc.receive_and_transmit_keyboard_input('s')
         elif (keyboard.is_pressed("a")):
             left_joystick()
+            wc.receive_and_transmit_keyboard_input('a')
         elif (keyboard.is_pressed("d")):
             right_joystick()
+            wc.receive_and_transmit_keyboard_input('d')
         else:
             stop_joystick()
+            wc.receive_and_transmit_keyboard_input('n')
+
+        wc.receive_and_transmit_keyboard_input()
         #---------------------------------------------------------------------------------------------------------
     else: # use the output from the headset
         # TODO: THREAD (maybe)

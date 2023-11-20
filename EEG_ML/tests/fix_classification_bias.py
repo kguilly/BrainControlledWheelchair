@@ -149,7 +149,7 @@ eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 board_id = BoardIds.CYTON_DAISY_BOARD.value
 
 # read the data into x and y arrs
-data_dir = os.path.join(curr_file_path, "test_data", 'kaleb_bald', 'headset_data')
+data_dir = os.path.join(curr_file_path, "test_data", 'kaleb_balder', 'headset_data')
 X = []
 Y = []
 for file in os.listdir(data_dir):
@@ -206,9 +206,9 @@ Y_shuf = np.array(Y_shuf)
 # print(f"Shuffled Label: {shuffled_trial_label}")
 # exit()
 # The data is shuffled correctly
-dropoutRate, kernels, kernLength, f1, d, f2, batch_size = get_best_hyperparams(X_shuf, Y_shuf)
-model, x, y = get_trained_model(X_shuf, Y_shuf, epochs=300, dropoutRate=dropoutRate, kernels=kernels,
-                                kernLength=kernLength, F1=f1, D=d, F2=f2, batch_size=batch_size)
+# dropoutRate, kernels, kernLength, f1, d, f2, batch_size = get_best_hyperparams(X_shuf, Y_shuf)
+model, x, y = get_trained_model(X_shuf, Y_shuf, epochs=300, dropoutRate=0.6, kernels=1,
+                                kernLength=64, F1=8, D=2, F2=32, batch_size=16)
 acc = get_model_acc(model, x, y)
 print(f'Model Accuracy: {acc}')
 cm = get_confusion_matrix(model, x, y)
@@ -222,3 +222,6 @@ plt.ylabel("True")
 plt.title("Confusion Matrix")
 output_path = os.path.join(curr_file_path, 'test_data', cm_name)
 plt.savefig(output_path, dpi=300)
+
+# TODO: perform a weight adjustment sequence if the model overfits
+# like if the 

@@ -41,7 +41,7 @@ class TrainingSeq():
         self.info = 'file to connect to the headset and get the data'
         # self.user_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/' \
         #                  'test_data/kaleb/'
-        self.user_path = os.path.join(curr_file_path, 'test_data', 'kaleb_bald')
+        self.user_path = os.path.join(curr_file_path, 'test_data', 'kaleb_balder')
         self.storage_path = os.path.join(self.user_path, 'headset_data')
         # self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
@@ -49,7 +49,7 @@ class TrainingSeq():
         ## headset init params
         self.board = None
         self.timeout = 50
-        self.serial_port = 'COM3'
+        self.serial_port = '/dev/ttyUSB0'
         self.board_id = BoardIds.CYTON_DAISY_BOARD
         ##########################
 
@@ -294,10 +294,10 @@ class TrainingSeq():
         if not os.path.exists(self.storage_path):
             os.makedirs(self.storage_path)
             
-        if not os.path.exists(filename): # if the file does not exist, create it 
-            with open(filename, 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([])
+        # if not os.path.exists(filename): # if the file does not exist, create it 
+        #     with open(filename, 'w', newline='') as file:
+        #         writer = csv.writer(file)
+        #         writer.writerow([])
         
         DataFilter.write_file(data, filename, 'a') 
 
