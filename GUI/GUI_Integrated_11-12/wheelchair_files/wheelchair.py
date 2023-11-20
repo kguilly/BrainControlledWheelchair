@@ -16,7 +16,7 @@ import keyboard
 
 
 #GLOBAL VARIABLES
-serial_port = None
+serial_port = '/dev/rfcomm0'
 ser = serial.Serial(serial_port, baudrate=921600)
 
 

@@ -557,7 +557,7 @@ def training_csv_populator(label, profile_path):
     headset_status = init.start_session(headset)
     if headset_status == False:
         print("Could not start session during training")
-        exit(1)
+        # exit(1)
 
     # wait until training finishes to gather the data
     while (trainingFlag != True):
@@ -680,12 +680,12 @@ def training_complete_finish_button():
     # TODO: make a waiting screen for the model to train
     # after the training is complete
     # TODO: make y_train one hot encoded, SHUFFLE THE ARRAYS BEFORE TRAINING
-    profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
-    accuracy = ml.train_the_model(profile_path)  # the model is saved to the user's directory
+    # profile_path = os.path.join(curr_file_path, "Profiles", "Profile" + profSelected)
+    # accuracy = ml.train_the_model(profile_path)  # the model is saved to the user's directory
 
-    # TODO: display to the user the accuaracy of their trained model
-    # TODO: TRAIN MORE? OR USE THE SYSTEM?
-    print(f'Your trained model\'s accuracy is {accuracy}')
+    # # TODO: display to the user the accuaracy of their trained model
+    # # TODO: TRAIN MORE? OR USE THE SYSTEM?
+    # print(f'Your trained model\'s accuracy is {accuracy}')
 
     window.deiconify()
     trainingCompleteWindow.withdraw()

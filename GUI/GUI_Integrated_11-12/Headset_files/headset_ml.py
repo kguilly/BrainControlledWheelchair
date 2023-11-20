@@ -153,11 +153,12 @@ def train_the_model(profile_path):
             Y.append(label)
 
     # after gathering together all of the data, call the function to get the best hyperparams
-    dropoutRate, kernels, kernLength, F1, D, F2, batch_size = get_best_hyperparams(X, Y)
+    # dropoutRate, kernels, kernLength, F1, D, F2, batch_size = get_best_hyperparams(X, Y)
     
     # process, filter, and epoch the data 
-    model = get_trained_model(X, Y, dropoutRate=dropoutRate, kernels=kernels, kernLength=kernLength,
-                              F1=F1, D=D, F2=F2, batch_size=batch_size) # call the function to train the model
+    # model = get_trained_model(X, Y, dropoutRate=dropoutRate, kernels=kernels, kernLength=kernLength,
+    #                           F1=F1, D=D, F2=F2, batch_size=batch_size) # call the function to train the model
+    model = get_trained_model(X, Y)
     
     last_quarter_idx = int(len(Y) * 0.75)
     X_test = X[last_quarter_idx:, :, :]
