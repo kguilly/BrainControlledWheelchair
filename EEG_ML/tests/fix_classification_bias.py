@@ -149,7 +149,7 @@ eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 board_id = BoardIds.CYTON_DAISY_BOARD.value
 
 # read the data into x and y arrs
-data_dir = os.path.join(curr_file_path, "test_data", 'kaleb_balder', 'headset_data')
+data_dir = os.path.join(curr_file_path, "test_data", 'gerhort', 'headset_data')
 X = []
 Y = []
 for file in os.listdir(data_dir):
@@ -222,6 +222,9 @@ plt.ylabel("True")
 plt.title("Confusion Matrix")
 output_path = os.path.join(curr_file_path, 'test_data', cm_name)
 plt.savefig(output_path, dpi=300)
+
+
+print(f'THIS IS THE MODEL PARAMETERS: {model.summary()}')
 
 # TODO: perform a weight adjustment sequence if the model overfits
 # like if the 
