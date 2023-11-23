@@ -11,9 +11,10 @@
 ### Package versions for machine learning: 
 
 - tensorflow==2.14.0
-  - for GPU users: pip install tensorflow[and-cuda]
+  - for CUDA capable GPUs: pip install tensorflow[and-cuda]
 
 - keras==2.14.0
+  - Note: included with tensorflow
 
 - brainflow==5.10.1
 
