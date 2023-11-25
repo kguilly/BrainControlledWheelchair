@@ -43,8 +43,9 @@ with add_to_path(curr_file_path):
 
 # IMPORTANT: this var sets how many samples will be used to get predictions
 # num_samples = 180 # this is about a second and a half with the ultracortex mark iv
-num_samples = 250 # this is about a second with 8 channels connected
+num_samples = 230 # this is about a second with 8 channels connected
 samples_to_jump_by = 25 # for the convolutional split training, this is the number of samples
+kernels = 1
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_BOARD.value)
 num_channels = len(eeg_channels)
 
@@ -230,33 +231,32 @@ def get_best_hyperparams(X, Y): # function will return a df that shows every com
     return dropoutRate, kernels, kernLength, f1, d, f2, batch_size 
 
 def generate_prediction(board, model): # function to generate prediction given the trained model
-    # THIS FUNCTION ASSUMES: 
+    global kernels
+    # THIS FUNCTION ASSUMES:
         # a session has already been activated
         # the session has been recording for at least a second and a half alrea
     # generate a prediction
-    preds = []
-    while len(preds) <= 10: # MAY CAUSE MORE PROBLEMS, resolved with threading
-        time.sleep(0.1)
-        try:
-            data = board.get_data(num_samples)
-        except:
-            continue
-
+    try:
+        time.sleep(1.5)
+        data = board.get_board_data(int(num_samples * 1.5))
         eeg_data = data[eeg_channels, :]
-        eeg_3d_data = eeg_data.reshape(1, eeg_data.shape[0], 120, 1)
+        eeg_3d_data = np.reshape(eeg_data, (1, eeg_data.shape[0], eeg_data.shape[1]))
 
-        # pass through the model
-        probs = model.predict(eeg_3d_data)
-        
-        # get the highest values prediction
-        index = np.argmax(probs)
-        prediction = label_decoding.get(index)
+        # split the data in a convolutional manner
+        X, Y = ref.convolutional_split(eeg_3d_data, [1], samples_to_jump_by=samples_to_jump_by,
+                                       trial_len=num_samples, num_channels=num_channels)
 
-        # append that prediction to the arr
-        preds.append(prediction)
+        # do not use Y, its a dummy var
+        X_4d = np.reshape(X, (X.shape[0], X.shape[1], X.shape[2], 1))
+        probs = model.predict(X_4d)
 
-    # return the value which appears the most
-    most_common_output = np.argmax(np.bincount(preds))
-    return most_common_output
+        # return the value which appears the most
+        most_common_output = np.argmax(probs)
+        prediction = label_decoding.get(most_common_output + 1)
+        print(prediction)
+        return prediction
+    except:
+        return 'none'
+
 
     

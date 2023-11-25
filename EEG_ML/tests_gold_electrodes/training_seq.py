@@ -41,7 +41,7 @@ class TrainingSeq():
         self.info = 'file to connect to the headset and get the data'
         # self.user_path = '/home/kaleb/Documents/GitHub/BrainControlledWheelchair/EEG_ML/tests/' \
         #                  'test_data/kaleb/'
-        self.user_path = os.path.join(curr_file_path, 'test_data', 'kaleb_test0')
+        self.user_path = os.path.join(curr_file_path, 'test_data', 'kaleb_test1')
         self.storage_path = os.path.join(self.user_path, 'headset_data')
         # self.storage_path = '/home/kaleb/Desktop/HEADSET_DATA/'
 
@@ -49,7 +49,7 @@ class TrainingSeq():
         ## headset init params
         self.board = None
         self.timeout = 50
-        self.serial_port = '/dev/ttyUSB0'
+        self.serial_port = 'COM5'
         self.board_id = BoardIds.CYTON_BOARD
         ##########################
 
@@ -143,38 +143,38 @@ class TrainingSeq():
                 print("OK, do it again\n\n")
                 time.sleep(2)
 
-        ## LEFT
-        while True:
-            self.countdown(3, "LEFT", "Go")
-            self.board.start_stream()
-            self.countdown(5, "", "Stop")
-            dataf = self.board.get_board_data()
-            self.board.stop_stream()
-            choice = input("Send to File? [y/n]: ")
-            if str(choice).lower() == 'y':
-                self.send_data_to_file(dataf, "left")
-                time.sleep(2)
-                break
-            else:
-                print("OK, do it again\n\n")
-                time.sleep(2)
-
-        
-        ## RIGHT
-        while True:
-            self.countdown(3, "RIGHT", "Go")
-            self.board.start_stream()
-            self.countdown(5, "", "Stop")
-            dataf = self.board.get_board_data()
-            self.board.stop_stream()
-            choice = input("Send to File? [y/n]: ")
-            if str(choice).lower() == 'y':
-                self.send_data_to_file(dataf, "right")
-                time.sleep(2)
-                break
-            else:
-                print("OK, do it again\n\n")
-                time.sleep(2)
+        # ## LEFT
+        # while True:
+        #     self.countdown(3, "LEFT", "Go")
+        #     self.board.start_stream()
+        #     self.countdown(5, "", "Stop")
+        #     dataf = self.board.get_board_data()
+        #     self.board.stop_stream()
+        #     choice = input("Send to File? [y/n]: ")
+        #     if str(choice).lower() == 'y':
+        #         self.send_data_to_file(dataf, "left")
+        #         time.sleep(2)
+        #         break
+        #     else:
+        #         print("OK, do it again\n\n")
+        #         time.sleep(2)
+        #
+        #
+        # ## RIGHT
+        # while True:
+        #     self.countdown(3, "RIGHT", "Go")
+        #     self.board.start_stream()
+        #     self.countdown(5, "", "Stop")
+        #     dataf = self.board.get_board_data()
+        #     self.board.stop_stream()
+        #     choice = input("Send to File? [y/n]: ")
+        #     if str(choice).lower() == 'y':
+        #         self.send_data_to_file(dataf, "right")
+        #         time.sleep(2)
+        #         break
+        #     else:
+        #         print("OK, do it again\n\n")
+        #         time.sleep(2)
 
 
         ## REST
